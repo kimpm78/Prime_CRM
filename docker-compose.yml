@@ -1,0 +1,77 @@
+name: prime-crm
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-prime_crm}
+      POSTGRES_USER: ${POSTGRES_USER:-prime_crm}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret}
+      TZ: ${TZ:-Asia/Tokyo}
+      PGTZ: ${TZ:-Asia/Tokyo}
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    working_dir: /var/www/html
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:${BACKEND_PORT:-8000}
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_DATABASE: ${POSTGRES_DB:-prime_crm}
+      DB_USERNAME: ${POSTGRES_USER:-prime_crm}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-secret}
+      TZ: ${TZ:-Asia/Tokyo}
+    command:
+      - /usr/local/bin/start-backend
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - ./backend:/var/www/html
+      - backend_vendor:/var/www/html/vendor
+    depends_on:
+      postgres:
+        condition: service_healthy
+    init: true
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    working_dir: /app
+    environment:
+      VITE_API_PROXY_TARGET: http://backend:8000
+      CHOKIDAR_USEPOLLING: ${CHOKIDAR_USEPOLLING:-false}
+      TZ: ${TZ:-Asia/Tokyo}
+    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]
+    ports:
+      - "${FRONTEND_PORT:-5173}:5173"
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+    depends_on:
+      backend:
+        condition: service_started
+    init: true
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  backend_vendor:
+  frontend_node_modules:
