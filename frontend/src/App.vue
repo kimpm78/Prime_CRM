@@ -1,63 +1,32 @@
-<script setup>
-import { onMounted, ref } from 'vue'
+<script setup lang="ts">
+import { ref } from 'vue'
+import { RouterView } from 'vue-router'
+import AppSidebar from '@/components/organisms/AppSidebar.vue'
+import AppButton from '@/components/atoms/AppButton.vue'
+import AppIcon from '@/components/atoms/AppIcon.vue'
 
-const customers = ref([])
-const loading = ref(true)
-const error = ref('')
-
-onMounted(async () => {
-  try {
-    const response = await fetch('/api/customers')
-
-    if (!response.ok) {
-      throw new Error(`API request failed: ${response.status}`)
-    }
-
-    const payload = await response.json()
-    customers.value = payload.data ?? []
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Failed to load customers'
-  } finally {
-    loading.value = false
-  }
-})
+const mobileMenuOpen = ref(false)
 </script>
 
 <template>
-  <main class="page">
-    <section class="toolbar">
-      <div>
-        <p class="eyebrow">Prime CRM</p>
-        <h1>Customers</h1>
-      </div>
-      <button type="button">New Customer</button>
-    </section>
-
-    <section class="panel">
-      <p v-if="loading" class="muted">Loading customers...</p>
-      <p v-else-if="error" class="error">{{ error }}</p>
-      <p v-else-if="customers.length === 0" class="muted">No customers yet.</p>
-
-      <table v-else>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Company</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="customer in customers" :key="customer.id">
-            <td>{{ customer.name }}</td>
-            <td>{{ customer.email }}</td>
-            <td>{{ customer.company || '-' }}</td>
-            <td>
-              <span class="status">{{ customer.status }}</span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
-  </main>
+  <div class="min-h-screen bg-slate-50 text-slate-900">
+    <AppSidebar :open="mobileMenuOpen" @close="mobileMenuOpen = false" />
+    <div class="lg:pl-64">
+      <header class="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur md:px-8">
+        <AppButton class="lg:hidden" severity="secondary" text rounded aria-label="メニュー" @click="mobileMenuOpen = true">
+          <AppIcon name="menu" :size="20" />
+        </AppButton>
+        <div class="hidden items-center gap-2 text-xs font-semibold text-slate-400 sm:flex">
+          <span class="h-2 w-2 rounded-full bg-emerald-500" />
+          PostgreSQL 16 接続中
+        </div>
+        <AppButton severity="secondary" text rounded aria-label="通知">
+          <AppIcon name="bell" :size="19" />
+        </AppButton>
+      </header>
+      <main class="mx-auto max-w-[1500px] p-4 md:p-8">
+        <RouterView />
+      </main>
+    </div>
+  </div>
 </template>
