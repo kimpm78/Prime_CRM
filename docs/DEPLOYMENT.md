@@ -8,8 +8,8 @@ InfinityFreeの無料ホスティングはMySQLを基盤としており、Postgr
 
 ```text
 利用者のブラウザ
-  └─ HTTPS → Vue静的サイト（InfinityFreeまたは静的ホスティング）
-       └─ HTTPS API → Laravel 13コンテナ
+  └─ HTTPS → Vue静的サイト（例: crm.example.com）
+       └─ HTTPS API → Laravel 13コンテナ（例: api.example.com）
                           └─ PostgreSQL 16
 ```
 
@@ -23,7 +23,7 @@ InfinityFreeの無料ホスティングはMySQLを基盤としており、Postgr
 
 ## VueをInfinityFreeへ配置する場合
 
-1. Laravel APIを別のホスティング環境へ配置し、HTTPSの公開URLで動作することを確認します。
+1. Laravel APIを別のホスティング環境へ配置し、フロントエンドと同じ親ドメイン配下のHTTPS URLで動作することを確認します。
 2. `frontend/.env.production.example`を`frontend/.env.production`へコピーします。
 3. `VITE_API_BASE_URL`にLaravel APIのオリジンを設定します。URLの末尾に`/api`は付けません。
 4. Laravelの環境変数`CORS_ALLOWED_ORIGINS`に、InfinityFreeで公開するフロントエンドのオリジンを設定します。
@@ -39,20 +39,25 @@ docker compose run --rm frontend npm run build
 
 ```dotenv
 # frontend/.env.production
-VITE_API_BASE_URL=https://api.example-host.com
+VITE_API_BASE_URL=https://api.example.com
 
 # バックエンドの本番環境
 APP_ENV=production
 APP_DEBUG=false
-APP_URL=https://api.example-host.com
-CORS_ALLOWED_ORIGINS=https://your-site.infinityfreeapp.com
+APP_URL=https://api.example.com
+CORS_ALLOWED_ORIGINS=https://crm.example.com
+SANCTUM_STATEFUL_DOMAINS=crm.example.com
+SESSION_DOMAIN=.example.com
+SESSION_SECURE_COOKIE=true
 ```
+
+Prime CRMのログインはLaravel SanctumのCookieセッション認証を使用します。フロントエンドとAPIは、`crm.example.com`と`api.example.com`のように同じトップレベルドメインを共有する必要があります。InfinityFreeの提供ドメインと無関係なAPIドメインを組み合わせる構成ではCookieセッションを共有できないため、独自ドメインのサブドメイン構成または同一オリジンのリバースプロキシを使用してください。
 
 ## 公開前の確認事項
 
 - `APP_DEBUG=false`になっていること
 - 推測されにくいデータベースパスワードと、新しく生成した`APP_KEY`を使用していること
 - APIとフロントエンドの両方でHTTPSを使用していること
-- デモアカウントのパスワードを変更するか、認証機能を追加していること
+- `PRIME_CRM_ADMIN_EMAIL`と`PRIME_CRM_ADMIN_PASSWORD`を本番専用の値へ変更していること
 - 本番環境では`SEED_DATABASE=false`になっていること
 - データベースのバックアップ方針が設定されていること

@@ -3,12 +3,21 @@
 namespace Tests\Feature;
 
 use App\Models\Account;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class CrmApiTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Sanctum::actingAs(User::factory()->create());
+    }
 
     public function test_account_crud_uses_logical_delete_and_writes_audit_log(): void
     {

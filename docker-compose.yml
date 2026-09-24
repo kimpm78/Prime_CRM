@@ -37,6 +37,11 @@ services:
       DB_USERNAME: ${POSTGRES_USER:-prime_crm}
       DB_PASSWORD: ${POSTGRES_PASSWORD:-secret}
       SEED_DATABASE: ${SEED_DATABASE:-true}
+      PRIME_CRM_ADMIN_NAME: ${PRIME_CRM_ADMIN_NAME:-Prime CRM 管理者}
+      PRIME_CRM_ADMIN_EMAIL: ${PRIME_CRM_ADMIN_EMAIL:-admin@prime-crm.test}
+      PRIME_CRM_ADMIN_PASSWORD: ${PRIME_CRM_ADMIN_PASSWORD:-PrimeCRM2026!}
+      PRIME_CRM_ADMIN_DEPARTMENT: ${PRIME_CRM_ADMIN_DEPARTMENT:-システム管理}
+      SANCTUM_STATEFUL_DOMAINS: ${SANCTUM_STATEFUL_DOMAINS:-localhost:5173,127.0.0.1:5173}
       TZ: ${TZ:-Asia/Tokyo}
     command:
       - /usr/local/bin/start-backend
@@ -63,12 +68,30 @@ services:
     command: ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]
     ports:
       - "${FRONTEND_PORT:-5173}:5173"
-      - "${STORYBOOK_PORT:-6006}:6006"
     volumes:
       - ./frontend:/app
       - frontend_node_modules:/app/node_modules
     depends_on:
       backend:
+        condition: service_started
+    init: true
+    restart: unless-stopped
+
+  storybook:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    working_dir: /app
+    environment:
+      TZ: ${TZ:-Asia/Tokyo}
+    command: ["npm", "run", "storybook", "--", "--host", "0.0.0.0"]
+    ports:
+      - "${STORYBOOK_PORT:-6006}:6006"
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+    depends_on:
+      frontend:
         condition: service_started
     init: true
     restart: unless-stopped

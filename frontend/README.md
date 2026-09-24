@@ -8,10 +8,11 @@ Prime CRMのフロントエンドは、Vue 3とTypeScriptで構築したSPAで�
 - TypeScript 5.9
 - Vite 8
 - Tailwind CSS 4
-- Volt UI / PrimeVue unstyled
+- Volt UI / PrimeVue 4.5（MIT、unstyled）
 - Lucide Vue Next
 - Pinia
 - Vue Router
+- Laravel Sanctum（セッション認証）
 - Storybook 10
 - Node.js 22
 
@@ -59,6 +60,15 @@ src/components/
 └── organisms/
     ├── CustomerTable.vue
     ├── CustomerForm.vue
+    ├── LeadTable.vue
+    ├── LeadForm.vue
+    ├── OpportunityTable.vue
+    ├── OpportunityForm.vue
+    ├── TaskTable.vue
+    ├── TaskForm.vue
+    ├── CaseTable.vue
+    ├── CaseForm.vue
+    ├── NotificationMenu.vue
     └── AppSidebar.vue
 ```
 
@@ -86,10 +96,12 @@ docker compose up -d --build
 - アプリケーション: http://localhost:5173
 - Storybook: http://localhost:6006
 
-フロントエンドコンテナのログを確認する場合は、次のコマンドを使用します。
+`docker compose up -d --build`を実行すると、ViteとStorybookはそれぞれ別のコンテナで自動起動します。
+
+フロントエンドとStorybookのログを確認する場合は、次のコマンドを使用します。
 
 ```bash
-docker compose logs -f frontend
+docker compose logs -f frontend storybook
 ```
 
 ## ローカルでの開発
@@ -103,6 +115,7 @@ npm run dev
 ```
 
 開発サーバーでは`/api`へのリクエストをLaravelへ転送します。Docker環境では`VITE_API_PROXY_TARGET`がComposeから設定されます。
+`/sanctum`も同じLaravel APIへ転送し、ログイン用のCSRF Cookieを取得します。
 
 ## 環境変数
 
@@ -135,8 +148,10 @@ Dockerコンテナ内で実行する場合は、各コマンドの先頭に`dock
 
 Atoms、Molecules、Organismsの表示と状態を、アプリケーションから独立して確認できます。
 
+Docker ComposeではStorybookが自動起動するため、http://localhost:6006 を開いて確認します。
+
 ```bash
-docker compose exec frontend npm run storybook
+docker compose logs -f storybook
 ```
 
 静的なStorybookを生成する場合は、次のコマンドを実行します。

@@ -11,16 +11,26 @@ interface CrmState {
   total: number
   loading: boolean
   error: string
+  dashboardLoading: boolean
+  dashboardError: string
 }
 
 export const useCrmStore = defineStore('crm', {
-  state: (): CrmState => ({ dashboard: null, customers: [], search: '', page: 1, lastPage: 1, total: 0, loading: false, error: '' }),
+  state: (): CrmState => ({ dashboard: null, customers: [], search: '', page: 1, lastPage: 1, total: 0, loading: false, error: '', dashboardLoading: false, dashboardError: '' }),
   getters: {
     users: (state) => state.dashboard?.users ?? [],
   },
   actions: {
     async fetchDashboard() {
-      this.dashboard = await api<DashboardPayload>('/api/dashboard')
+      this.dashboardLoading = true
+      this.dashboardError = ''
+      try {
+        this.dashboard = await api<DashboardPayload>('/api/dashboard')
+      } catch (error) {
+        this.dashboardError = error instanceof Error ? error.message : 'ダッシュボード情報を取得できませんでした。'
+      } finally {
+        this.dashboardLoading = false
+      }
     },
     async fetchCustomers(page = 1) {
       this.loading = true

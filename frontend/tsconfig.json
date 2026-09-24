@@ -13,8 +13,7 @@
     "jsx": "preserve",
     "strict": true,
     "noUncheckedIndexedAccess": true,
-    "baseUrl": ".",
-    "paths": { "@/*": ["src/*"] },
+    "paths": { "@/*": ["./src/*"] },
     "types": ["vite/client"]
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", ".storybook/**/*.ts"],
