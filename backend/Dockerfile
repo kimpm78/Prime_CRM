@@ -1,6 +1,6 @@
 FROM composer:2 AS composer
 
-FROM php:8.2-cli-bookworm
+FROM php:8.3-cli-bookworm
 
 ARG DEBIAN_FRONTEND=noninteractive
 
