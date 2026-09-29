@@ -53,6 +53,9 @@ class AuthApiTest extends TestCase
 
     public function test_crm_api_requires_authentication(): void
     {
+        $this->get('/api/auth/user')
+            ->assertUnauthorized()
+            ->assertJsonPath('message', 'Unauthenticated.');
         $this->getJson('/api/dashboard')->assertUnauthorized();
         $this->getJson('/api/accounts')->assertUnauthorized();
         $this->getJson('/api/notifications')->assertUnauthorized();
